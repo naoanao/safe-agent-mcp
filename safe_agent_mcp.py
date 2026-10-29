@@ -198,5 +198,9 @@ def explain_guard_pattern(pattern: str) -> dict[str, Any]:
             "note": "Working code, tests and the 100 production traps catalog ship in the Safe AI Agent Pack ($69 / team $199)."}
 
 
-if __name__ == "__main__":
+def main() -> None:
     mcp.run()
+
+
+if __name__ == "__main__":
+    main()
