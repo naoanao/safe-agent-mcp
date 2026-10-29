@@ -1,3 +1,5 @@
+<!-- mcp-name: io.github.naoanao/safe-agent-mcp -->
+
 # Safe AI Agent — Guard Checks (free MCP server)
 
 A free, read-only MCP server with three diagnostic tools for people who run

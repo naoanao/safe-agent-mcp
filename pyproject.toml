@@ -1,0 +1,31 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "safe-agent-mcp"
+version = "0.1.0"
+description = "Free read-only MCP server: audit API-key privileges, check idempotency patterns, explain AI-agent guard patterns."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Nao" }]
+keywords = ["mcp", "model-context-protocol", "ai-agent", "ai-safety", "guardrails"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Operating System :: OS Independent",
+]
+dependencies = ["fastmcp>=2.0"]
+
+[project.scripts]
+safe-agent-mcp = "safe_agent_mcp:main"
+
+[project.urls]
+Homepage = "https://github.com/naoanao/safe-agent-mcp"
+Repository = "https://github.com/naoanao/safe-agent-mcp"
+
+[tool.hatch.build.targets.wheel]
+py-modules = ["safe_agent_mcp"]
+
+[tool.hatch.build.targets.sdist]
+py-modules = ["safe_agent_mcp"]
