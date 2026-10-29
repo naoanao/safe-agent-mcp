@@ -1,0 +1,10 @@
+{
+  "name": "safe-agent-mcp",
+  "version": "0.1.0",
+  "mcpServers": {
+    "safe-agent-mcp": {
+      "command": "python3",
+      "args": ["-m", "safe_agent_mcp"]
+    }
+  }
+}
