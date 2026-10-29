@@ -56,3 +56,9 @@ the 100 production-traps catalog — ship in the
 ## License
 
 MIT for this free server. The paid pack has its own commercial license.
+
+## Get the kit
+
+- **Starter Kit ($19)** — the 24-traps checklist + guard-patterns guide bundle: https://whop.com/growl-ai/safe-ai-agent-starter-kit-guardrails-for-ai-agents
+- **Full Pack ($69 / team $199)** — 100-traps catalog, working modules, sabotage-test playbook: https://growl-ai.com/store/en
+- Background reading: [Idempotency Keys, Explained (dev.to)](https://dev.to/naoanao/idempotency-keys-explained-how-to-stop-your-ai-agent-from-running-things-twice-25jp)
