@@ -1,0 +1,6 @@
+startCommand:
+  type: stdio
+  configSchema: {}
+  commandFunction: |-
+    (config) => ({ command: 'uvx', args: ['safe-agent-mcp'] })
+  exampleConfig: {}
