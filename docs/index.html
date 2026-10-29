@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>safe-agent-mcp — Live Demo</title>
+<style>
+  body{background:#0d1117;color:#e6edf3;font-family:ui-monospace,Menlo,Consolas,monospace;margin:0;padding:24px}
+  .wrap{max-width:860px;margin:0 auto}
+  h1{font-size:22px} h2{font-size:16px;margin-top:36px;color:#58a6ff}
+  p,li{font-size:14px;line-height:1.6;color:#c9d4e0}
+  textarea{width:100%;height:150px;background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:8px;padding:10px;font-family:inherit;font-size:13px}
+  select,input[type=text]{background:#161b22;color:#e6edf3;border:1px solid #30363d;border-radius:6px;padding:8px;font-family:inherit}
+  button{background:#238636;color:#fff;border:0;border-radius:6px;padding:9px 18px;font-size:14px;cursor:pointer;margin-top:10px}
+  pre{background:#161b22;border:1px solid #30363d;border-radius:8px;padding:14px;white-space:pre-wrap;font-size:13px;min-height:40px}
+  .ok{color:#3fb950}.warn{color:#f0883e}.bad{color:#f85149}
+  a{color:#58a6ff}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>safe-agent-mcp — Live Demo</h1>
+<p>This page runs the same static checks as the MCP server tools, in your browser. Your code is never sent anywhere and never executed. Get the full server free on <a href="https://github.com/naoanao/safe-agent-mcp">GitHub</a> / PyPI (<code>pip install safe-agent-mcp</code>).</p>
+
+<h2>Tool 1: check_idempotency_pattern</h2>
+<p>Paste a code snippet that performs a side effect (send, charge, create) and run the check:</p>
+<textarea id="code">def charge_and_notify(customer):
+    stripe.charges.create(amount=customer.amount)
+    send_email(customer.email, "charged")</textarea>
+<br><button onclick="runCheck()">Run check</button>
+<pre id="out1">Results will appear here.</pre>
+
+<h2>Tool 2: audit_api_keys</h2>
+<p>Describe your keys' permissions (never paste real key values), one per line, e.g. <code>billing-key: stripe charges write, refunds write, admin</code>:</p>
+<textarea id="keys" style="height:90px">prod-key: read, write, delete, admin
+report-key: read only, expires 2026-01-01</textarea>
+<br><button onclick="runAudit()">Run audit</button>
+<pre id="out2">Results will appear here.</pre>
+
+<h2>Tool 3: explain_guard_pattern</h2>
+<select id="pat">
+  <option value="idempotency_key">idempotency_key</option>
+  <option value="approval_gate">approval_gate</option>
+  <option value="outbox">outbox</option>
+  <option value="key_inventory">key_inventory</option>
+  <option value="circuit_breaker">circuit_breaker</option>
+  <option value="signed_approval_link">signed_approval_link</option>
+</select>
+<button onclick="runExplain()">Explain</button>
+<pre id="out3">Select a pattern and click Explain.</pre>
+
+<script>
+function has(re, s){ return re.test(s); }
+function runCheck(){
+  const code = document.getElementById('code').value;
+  const L = [];
+  const checks = [
+    ["Idempotency key generated per operation", /uuid|idempotency[_-]?key|dedup/i],
+    ["Server-side record before executing", /insert|save|store|record|db\.|database/i],
+    ["Uniqueness constraint on the key", /unique|on conflict| IntegrityError/i],
+    ["Duplicate returns the first result (short-circuit)", /already|existing|return .*stored|if .*exists/i],
+    ["Payload bound to the key (hash)", /hash|sha256|digest/i],
+    ["Approval separated from execution", /approv|pending|review/i],
+  ];
+  let found = 0;
+  for (const [name, re] of checks){
+    const ok = has(re, code);
+    if (ok) found++;
+    L.push((ok ? "FOUND   " : "MISSING ") + name);
+  }
+  const side = /send|charge|create|post|email|pay/i.test(code);
+  L.push("");
+  L.push("Side effects detected: " + (side ? "yes" : "none obvious"));
+  L.push("Score: " + found + "/" + checks.length + " guard signals present.");
+  if (!has(/uuid|idempotency/i, code)) L.push("Advice: add an idempotency key first — it is the cheapest fix for double execution.");
+  document.getElementById('out1').textContent = L.join("\n");
+}
+function runAudit(){
+  const lines = document.getElementById('keys').value.split("\n").filter(x=>x.trim());
+  const L = [];
+  for (const line of lines){
+    const low = line.toLowerCase();
+    const flags = [];
+    if (/admin|root|\ball\b|full/.test(low)) flags.push("OVER-PRIVILEGED scope (admin/full access)");
+    if (/delete|write/.test(low) && /admin/.test(low)) flags.push("write/delete combined with admin");
+    if (!/expir|rotation|rotat/.test(low)) flags.push("no expiry/rotation mentioned");
+    L.push(line.split(":")[0] + ": " + (flags.length ? flags.join("; ") : "no obvious issues"));
+  }
+  L.push("");
+  L.push("Rule of thumb: one key per agent per service, least privilege, with an expiry.");
+  document.getElementById('out2').textContent = L.join("\n");
+}
+const PATTERNS = {
+  idempotency_key: "Attach one unique key to each logical operation. Record it server-side before executing; a retry with the same key returns the first result instead of running twice.",
+  approval_gate: "Dangerous actions wait in a pending state until a human approves. The agent proposes; it never self-approves.",
+  outbox: "Never send directly. Write the message to an outbox table; a dispatcher sends only approved rows, exactly once, and marks them sent.",
+  key_inventory: "Keep a living list of every API key: owner, scope, expiry. Audit descriptions regularly; revoke anything over-privileged or unused.",
+  circuit_breaker: "Hard caps on steps, retries and spend per run. When a cap trips, the agent stops and reports instead of looping overnight.",
+  signed_approval_link: "Approval requests carry a signed, expiring link (HMAC over action + payload + expiry), so approvals cannot be forged or replayed."
+};
+function runExplain(){
+  const k = document.getElementById('pat').value;
+  document.getElementById('out3').textContent = k + "\n\n" + PATTERNS[k];
+}
+</script>
+</div>
+</body>
+</html>
