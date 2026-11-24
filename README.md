@@ -3,6 +3,7 @@
 # Safe AI Agent — Guard Checks (free MCP server)
 
 [![naoanao/safe-agent-mcp MCP server](https://glama.ai/mcp/servers/naoanao/safe-agent-mcp/badges/score.svg)](https://glama.ai/mcp/servers/naoanao/safe-agent-mcp)
+[![Listed on mcpservers.org](https://mcpservers.org/badge.svg)](https://mcpservers.org/servers/naoanao/safe-agent-mcp)
 
 A free, read-only MCP server with three diagnostic tools for people who run
 AI agents in production. Distilled from the **Safe AI Agent Pack** — the
